@@ -1,0 +1,26 @@
+@ngred1: #c00;
+@ngred2: #e00;
+@ngred3: #e20;
+@nggrey2: #baa;
+@nggrey1: #ddd;
+@bodydetach: 768px;
+
+html {
+    background-color: @nggrey1;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+body {
+    margin: auto;
+    background-color: white;
+    width: 100%;
+    height: 100%;
+    @media (min-width: @bodydetach) {
+        width: @bodydetach;
+    }
+    @media (min-width: (@bodydetach / 0.8)) {
+        width: 80%;
+    }
+}

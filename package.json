@@ -1,0 +1,33 @@
+{
+  "name": "angularjs-works",
+  "version": "1.0.0",
+  "description": "Showcase of basic AngularJS capability",
+  "main": "index.js",
+  "dependencies": {
+    "webpack": "^2.5.1"
+  },
+  "devDependencies": {
+    "autoprefixer": "^7.0.1",
+    "css-loader": "^0.28.1",
+    "extract-text-webpack-plugin": "^2.1.0",
+    "less": "^2.7.2",
+    "less-loader": "^4.0.3",
+    "postcss": "^6.0.1",
+    "postcss-loader": "^2.0.5",
+    "style-loader": "^0.17.0",
+    "webpack": "^2.5.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rafaelferreiraql/angularjsworks.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/rafaelferreiraql/angularjsworks/issues"
+  },
+  "homepage": "https://github.com/rafaelferreiraql/angularjsworks#readme"
+}
