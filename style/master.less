@@ -4,6 +4,7 @@
 @nggrey2: #baa;
 @nggrey1: #ddd;
 @bodydetach: 768px;
+@footpad: 4px;
 
 html {
     background-color: @nggrey1;
@@ -13,14 +14,16 @@ html {
 }
 
 body {
-    margin: auto;
+    position: relative;
+    margin: 0 auto;
     background-color: white;
     width: 100%;
-    height: 100%;
+    min-height: 100%;
     @media (min-width: @bodydetach) {
         width: @bodydetach;
     }
     @media (min-width: (@bodydetach / 0.8)) {
         width: 80%;
     }
+    padding-bottom: @footpad*2;
 }

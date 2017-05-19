@@ -8,17 +8,30 @@ app.config(["$routeProvider",function($route) {
     .when('/ng', {
         templateUrl: "./views/angular.html",
     })
-    .when('/interactive', {
+    .when('/coolstuff', {
         templateUrl: "./views/coolstuff.html",
+        controller: "coolController",
     })
     .when('/explain', {
         templateUrl: "./views/process.html",
+    })
+    .when('/explain1',{
+        templateUrl: "./views/process_general.html",
+    })
+    .when('/explain2',{
+        templateUrl: "./views/process_user.html",
+    })
+    .when('/explain3',{
+        templateUrl: "./views/process_cool.html",
+    })
+    .when('/explain4',{
+        templateUrl: "./views/process_meta.html",
     })
     .when('/edit',{
         templateUrl: "./views/profile.html",
         controller: "editController",
     })
     .otherwise({
-        template: "erro?",
+        template: "<h1>This page does not exist. Honest.</h1>",
     })
 }]);

@@ -1,1 +1,13 @@
-<h1>Profile</h1>
+<div>
+    <h1>Profile</h1>
+
+    <form name="profile" ng-model-options="updateRule" ng-submit="updateStorage()">
+        <label>Name: <input type="text" name="name" ng-model="user.name" /></label>
+        <label>Birthdate: <input type="date" name="birth" ng-model="user.birth" placeholder="YYYY-MM-DD" dateformat="dateformat"/>
+        <span ng-show="incorrectInput(profile.birth)">Incorrect input!</span></label>
+        <label>Favorite Color: <input type="color" name="color" ng-model="user.color" placeholder="#XXXXXX" colorformat="colorformat"/>
+        <span ng-show="incorrectInput(profile.color)">Incorrect input!</span></label>
+        <label>Inspirational quote: <textarea rows="3" cols="40" name="quote" ng-model="user.quote"></textarea></label>
+        <input type="submit" name="submit" value="Submit" />
+    </form>
+</div>

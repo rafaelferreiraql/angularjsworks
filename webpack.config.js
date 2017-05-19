@@ -5,7 +5,7 @@ const cssExtract = new Extract("styles.css");
 
 module.exports = {
     entry: {
-        app: "./script/app.js",
+        app: "./script/wrapper.js",
         style: "./style/main.less",
     },
     output: {

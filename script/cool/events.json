@@ -1,0 +1,49 @@
+{
+    "events": [
+        {
+            "event": "Birth of Jesus Christ",
+            "date": "0006-04-17",
+            "desc": "The birth of Jesus Christ, believed by many to be the Son of God and who, at the very least, went on to deliver many life lessons to the Jewish. The actual birth date is estimated."
+        },
+        {
+            "event": "Roosevelt becomes President of the United States",
+            "date": "1901-09-14",
+            "desc": "After the death of president Willian McKinley in September 6th, vice-president Theodore Roosevelt succeds."
+        },
+        {
+            "event": "Debut of Igor Stravinsky's 'Rite of Spring'",
+            "date": "1913-05-29",
+            "desc": "The premiere of the famous piece was held at the Théâtre des Champs-Élysées. The music was so weird some folks there started fighting each other."
+        },
+        {
+            "event": "Wall Street Crash of 1929",
+            "date": "1929-10-24",
+            "desc": "Also known as the 'Black Tuesday', this was a stock market crash with particularly devastating long term effects, including the Great Depression."
+        },
+        {
+            "event": "Launch of the Sputnik-1",
+            "date": "1957-10-04",
+            "desc": "The soviets deployed the first ever artificial satellite to orbit the Earth. This sparked the Space Race between the US and the USSR."
+        },
+        {
+            "event": "Release of 'Star Wars'",
+            "date": "1977-05-25",
+            "desc": "This day marked the debut of the first 'Star Wars' movie, that went on to spawn a prolific franchise still running as of this document."
+        },
+        {
+            "event": "The fall of the Berlin Wall",
+            "date": "1989-11-09",
+            "desc": "Among much confusion between German officials and conflicting orders, the wall was finally open on that day, and its demolition started."
+        },
+        {
+            "event": "Javascript is standardized",
+            "date": "1997-06-01",
+            "desc": "In the ECMA General Assembly of June 1997 (the exact date is uncertain, it's not disclosed for some reason), the first document of ECMA-262, which is to this day the official standard for Javascript, was adopted."
+        },
+        {
+            "event": "Donald Trump assumes office as President of the United States",
+            "date": "2017-01-20",
+            "desc": "But you're too young to read this or know who is Donald Trump. Either that or people are still reading this website after a couple years, which is pretty exciting. I wonder if Angular will be relevant five years from now."
+        }
+    ]
+}

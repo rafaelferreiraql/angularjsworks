@@ -1,0 +1,249 @@
+<div>
+    <h1>Profile Edit page</h1>
+    <p>
+        It's better if you start learning on the <a href="#explain1">global configuration</a> if you didn't already.
+    </p>
+    <h2>Review</h2>
+    <p>
+        Let's take a look at what this page does.
+    </p>
+    <p>
+        Actually, its purpose is very simple: it accesses the user data and lets you edit it. It has a field for each data property stored in <code>$rootScope</code>. The date property is used in a <code>&lt;input type=&quot;date&quot;/&gt;</code> field, so when it's used in certain browsers (it's surprisingly missing in Firefox), it will enable you to choose your date through a date picker. Also, the color property is used in <code>&lt;input type=&quot;color&quot;/&gt;</code>, which should be accessed through a color picker.
+    </p>
+    <p>
+        If your browser doesn't support color pickers or date pickers, you can still write the respective color codes and dates in a regular input field.
+    </p>
+    <h2>The how</h2>
+    <p>
+        Now that we reviewed the overall functionality of the edit page, let's understand its inner workings and how AngularJS deals with it.
+    </p>
+    <h3>Markup</h3>
+    <p>
+        We do most of the work here. Let's look at the whole form:
+    </p>
+    <pre>
+        <code>
+    &lt;form name=&quot;profile&quot; ng-model-options=&quot;updateRule&quot; ng-submit=&quot;updateStorage()&quot;&gt;
+        &lt;label&gt;Name: &lt;input type=&quot;text&quot; name=&quot;name&quot; ng-model=&quot;user.name&quot; /&gt;&lt;/label&gt;
+        &lt;label&gt;Birthdate: &lt;input type=&quot;date&quot; name=&quot;birth&quot; ng-model=&quot;user.birth&quot; placeholder=&quot;YYYY-MM-DD&quot; dateformat=&quot;dateformat&quot;/&gt;
+        &lt;span ng-show=&quot;incorrectInput(profile.birth)&quot;&gt;Incorrect input!&lt;/span&gt;&lt;/label&gt;
+        &lt;label&gt;Favorite Color: &lt;input type=&quot;color&quot; name=&quot;color&quot; ng-model=&quot;user.color&quot; placeholder=&quot;#XXXXXX&quot; colorformat=&quot;colorformat&quot; &gt;
+        &lt;span ng-show=&quot;incorrectInput(profile.color)&quot;&gt;Incorrect input!&lt;/span&gt;&lt;/label&gt;
+        &lt;label&gt;Inspirational quote: &lt;textarea rows=&quot;3&quot; cols=&quot;40&quot; name=&quot;quote&quot; ng-model=&quot;user.quote&quot;&gt;&lt;/textarea&gt;&lt;/label&gt;
+        &lt;input type=&quot;submit&quot; name=&quot;submit&quot; value=&quot;Submit&quot;&gt;
+    &lt;/form&gt;
+        </code>
+    </pre>
+    <p>
+        Some things you must know before we go on: Angular allows us not only to insert scope data onto the view, but also to change this very data inside the HTML, through things such as, you guessed it, forms. That is done primarily through <code>ng-model</code>, an Angular property that assigns an element to scope data. So, for instance, if your markup has <code>&lt;input ng-model=&quot;datum&quot;/&gt;</code>, every time you change what's inside that <code>input</code>, the <code>datum</code> that is part of a scope will change in Angular.
+    </p>
+    <p>
+        With that knowledge, let's dissect our form line by line.
+    </p>
+    <pre><code>
+    &lt;form name=&quot;profile&quot; ng-model-options=&quot;updateRule&quot; ng-submit=&quot;updateStorage()&quot;&gt;
+    </code></pre>
+    <p>
+        Aside from the regular HTML you expect from a form definition, you see some Angular-specific attributes as well. I'm talking about <code>ng-model-options</code> and <code>ng-submit</code>.
+    </p>
+    <p>
+        The first one determines how the scope will change. We know now that <code>ng-model</code> assigns element to data, but by default, the data changes immediately, and that's not the behaviour I was looking for. It could be yours, but I'd rather submit the form before having my name change on the panel, or before my app starts throwing error messages (you might have noticed it has a few, and we'll get into that). So, <code>ng-model-options</code> comes to the rescue. Everything inside the form will follow these options, represented by an object containing such options. But what is that <code>updateRule</code> anyway? That will be an object representing our options -- our option, since there's really only one I used. To summarize, we want our <code>$rootScope</code> to change only after submitting, which is not the default, so we use <code>ng-model-options</code>, that will have a value of <code>updateRule</code>, that we'll be defining later in Javascript and will ultimately change our defaults.
+    </p>
+    <p>
+        The other noteworthy attribute is <code>ng-submit</code>. That is an Angular equivalent to <code>onsubmit</code>, that has access to the scope. <code>updateStorage()</code>, just like <code>updateRule</code>, will be defined later. <i>Both will be part of our scope for this page.</i> <code>updateStorage()</code> is responsible for updating <code>localStorage</code> with the data provided.
+    </p>
+    <pre><code>
+    &lt;label&gt;Name: &lt;input type=&quot;text&quot; name=&quot;name&quot; ng-model=&quot;user.name&quot; /&gt;&lt;/label&gt;
+    </code></pre>
+    <p>
+        Now that we know about <code>ng-model</code>, this is as straightforward as it gets. This input field will be attached to <code>$rootScope.user.name</code>, and be initially filled with the default value, <i>person</i>, until you change it. Note that, when you submit, the panel will immediately reflect that change!
+    </p>
+    <pre><code>
+        &lt;label&gt;Birthdate: &lt;input type=&quot;date&quot; name=&quot;birth&quot; ng-model=&quot;user.birth&quot; placeholder=&quot;YYYY-MM-DD&quot; dateformat=&quot;dateformat&quot;/&gt;
+    </code></pre>
+    <p>
+        Now there's something different: <code>dateformat</code> is not a default AngularJS attribute. Its purpose is to increment AngularJS's own form validation capabilities; since it's a bit on the weak side for dates, I wrote a custom validator for that. If you're asking yourself how does AngularJS validate forms, it marks data with validity indicators whenever it passes or fails a validation standard. Validation is used the next line
+    </p>
+    <p>
+        But to understand what exactly is that <code>dateformat</code>, have to talk about <b>directives</b>. Basically, AngularJS interacts with the DOM via directives; this "extended functionality" HTML gains from Angular is achieved by directives alone. The framework comes with lots of directives like the ones discussed before (<code>ng-model</code>, <code>ng-submit</code>, etc), and in many situations they even replace attributes and tags already on HTML, to add more features needed for Angular. However, <code>dateformat</code> is a <i>custom</i> directive, and it is defined in Javascript, as we'll see later.
+    </p>
+    <pre><code>
+    &lt;span ng-show=&quot;incorrectInput(profile.birth)&quot;&gt;Incorrect input!&lt;/span&gt;&lt;/label&gt;
+    </code></pre>
+    <p>
+        This element will only show when <code>incorrectInput(profile.birth)</code> returns <code>true</code>. Its purpose is to check whenever the value of the <code>birth</code> input in the <code>profile</code> form (that is, the input directly above in code) passes validation or not. <code>ng-show</code> is responsible for hiding the element whenever its value is <code>false</code>.
+    </p>
+    <pre><code>
+    &lt;label&gt;Favorite Color: &lt;input type=&quot;color&quot; name=&quot;color&quot; ng-model=&quot;user.color&quot; placeholder=&quot;#XXXXXX&quot; colorformat=&quot;colorformat&quot; &gt;
+    &lt;span ng-show=&quot;incorrectInput(profile.color)&quot;&gt;Incorrect input!&lt;/span&gt;&lt;/label&gt;
+    </code></pre>
+    <p>
+        Exactly what we've done before. You should know what this markup does.
+    </p>
+    <pre><code>
+    &lt;label&gt;Inspirational quote: &lt;textarea rows=&quot;3&quot; cols=&quot;40&quot; name=&quot;quote&quot; ng-model=&quot;user.quote&quot;&gt;&lt;/textarea&gt;&lt;/label&gt;
+    </code></pre>
+    <p>
+        Again, nothing new. Just like the username field, except in <code>&lt;textarea&gt;</code>.
+    </p>
+    <pre><code>
+    &lt;input type=&quot;submit&quot; name=&quot;submit&quot; value=&quot;Submit&quot;&gt;
+    </code></pre>
+    <p>
+        The submit button, which finishes the job. It doesn't actually do anything in HTML (since there's no action defined on the <code>&lt;form&gt;</code> tag), but <code>ng-model-options</code> makes sure it will update the scope.
+    </p>
+    <p>
+        To summarize:
+    </p>
+    <ul>
+        <li>The form signalizes that everything inside will only update when it submits, and also that when it submits, it should fire a function called <code>updateStorage()</code>;</li>
+        <li>The first input is related to <code>$rootScope.user.name</code>;</li>
+        <li>The second input is related to <code>$rootScope.user.birth</code>, and will be validated by rules indicated by the <code>dateformat</code> directive, and if it fails validation, it will show a message;</li>
+        <li>The same happens with the color.</li>
+        <li>The last input is related to the phrase the user decides to include.</li>
+    </ul>
+    <p>
+        Since HTML is still supposed to be only for markup, we must resume our work in Javascript. There are many loose ends we must tie:
+    </p>
+    <ul>
+        <li>The <code>updateRule</code> object that should contain options for the data model;</li>
+        <li>The <code>updateStorage()</code> function that should update <code>localStorage</code>;</li>
+        <li>The <code>dateformat</code> directive and its validation rules;</li>
+        <li>The <code>colorformat</code> directive and its validation rules;</li>
+        <li>The <code>incorrectInput()</code> function that returns true if validation fails.</li>
+    </ul>
+    <p>
+        We'll look at all that now.
+    </p>
+    <h3>Script</h3>
+    <p>
+        We shouldn't do everything in HTML after all. Let's resort to Javascript to finish what we started.
+    </p>
+    <p>
+        First, we'll create a controller for this page. A controller creates a scope we can use to fill with data and functions, and its purpose is to manipulate such scope. In this case, our controller's scope will contain the <code>updateRule</code> object and the <code>updateStorage()</code> and <code>incorrectInput()</code> functions. Now, our scope will have those assets, in addition to the root scope we've already been using.
+    </p>
+    <pre><code>
+    app.controller("editController",['$scope','$rootScope',function($scope,$rootScope) {
+        $scope.updateStorage = function() {
+            ...
+        };
+        $scope.incorrectInput = function(field) {
+            ...
+        };
+        $scope.updateRule = {
+            ...
+        }
+    }]);
+    </code></pre>
+    <p>
+        <code>$scope</code> is the scope just created when the controller was assigned. <code>editController</code> was already assigned to this page through routing. Since we'll also use <code>$rootScope</code>, that needs to be included as dependency as well.
+    </p>
+    <pre><code>
+    $scope.updateRule = {
+        updateOn: 'submit',
+    }
+    </code></pre>
+    <p>
+        <code>ng-model-options</code> accepts properties to overwrite. In fact, if we used the DOM directly, we would just write <code>ng-model-options="{ updateOn: 'submit' }"</code>. Here, it should be clear that <code>updateOn</code> is a property that defines when the scope will update, and <code>submit</code> is a value that means that it will update on form submit.
+    </p>
+    <pre><code>
+    $scope.incorrectInput = function(field) {
+        return (field.$dirty &amp;&amp; field.$invalid);
+    };
+    </code></pre>
+    <p>
+        <code>$dirty</code> and <code>$invalid</code> are flags added to form input values. The latter goes through AngularJS' internal validation and, if it fails, will be set to <code>true</code> (there's the opposite <code>$valid</code> as well), and the former checks whenever the user has changed the value, so that the error won't be shown if the user didn't have the chance to change the value first. So, <code>incorrectInput()</code> will return <code>true</code> if the value in the argument has both failed the validation and been changed.
+    </p>
+    <pre><code>
+        $scope.updateStorage = function() {
+            localStorage.setItem('userData',JSON.stringify(data));
+        };
+    </code></pre>
+    <p>
+        And here's the function that updates <code>localStorage</code>. Very straightforward, maybe except the fact that we have to stringify the object, since <code>localStorage</code> stores everything as strings. When retrieving it later, we parse our stringified object.
+    </p>
+    <p>
+        That leaves us with two remaining tasks: defining the two validators we expected before.
+    </p>
+    <h3>Validation</h3>
+    <p>
+        This actually uses a lot of AngularJS concepts, so I'll need your attention here.
+    </p>
+    <p>
+        You see, ngModel has a controller API, that you can access to access lower-level properties of a model, like validation, for example. So, the controller has a <code>.$validators</code> properties that contain validation rules; all we have to do is to insert our own rules. In practice, what we want is something like this:
+    </p>
+    <pre><code>
+    ngModelController.$validators.myrules = function(modelValue, viewValue) {
+        // validation logic that finally returns boolean
+    }
+    </code></pre>
+    <p>
+        Where <code>modelValue</code> is the value stored in the model (scope) and <code>viewValue</code> is the value currently on the view. We'll be using <code>viewValue</code>, since we want to validate it before it reaches the scope.
+    </p>
+    <p>
+        Great, but where we will do this? Well, since we want to apply such rules only when we attach a respective directive (<i>dateformat</i> or <i>colorformat</i>), we should do that in our directive definitions. Fortunately, we can access the ngModel controller, but to do so we have to understand how to work with custom directives. You see, directives are pretty versatile, so the interface is not exactly simple.
+    </p>
+    <pre><code>
+    app.directive('myDirective',['...dependencies',function(...deps) {
+        return {
+            require: "siblingDirective",
+            link: function(scope, el, attrs, ctrl) {
+                ...
+            }
+        }
+    }])
+    </code></pre>
+    <p>
+        The object being returned is an options object, and we're using just the <code>require</code> and <code>link</code> properties, but there are many more we could use. <code>link</code> is what gives you access to many relevant data and enables you to manipulate them. We'll be using directives again later, but for now focus only on the <code>ctrl</code> argument, that represents the controller attached to the <code>siblingDirective</code>. If we use <code>require: "ngModel"</code>, we can then use its controller as expected!
+    </p>
+    <pre><code>
+    app.directive('dateformat',[function() {
+        return {
+            require: "ngModel",
+            link: function(scope, el, attrs, ctrl) {
+                ctrl.$validators.dateformat = function(modelValue, viewValue) {
+                    ...
+                }
+            }
+        }
+    }]);
+    </code></pre>
+    <p>
+        It's going to look like this. <code>ctrl</code> is actually the <code>ngModel</code> controller, because <code>ngModel</code> is <code>require</code>d in the directive definition. The only thing left now is the validation logic itself. While we could easily write the logic directly inside the function, it would be wise to store it elsewhere, again to avoid clutter.
+    </p>
+    <p>
+        Luckily for us, AngularJS has a philosophy on that. We can use <i>services</i> or <i>factories</i> to store miscellaneous logic and use them when desired. Services are objects you can configure however you want, and factories return whatever you want, but you have a bit more boilerplate. I won't go into the logic itself here, but the workflow should be understood.
+    </p>
+    <pre><code>
+    app.factory('dateFormatValidation',[function() {
+        return function(viewValue) { // of course, you can use the name you want for arguments
+                                     // I used "viewValue" to make it clearer that's we're using
+
+            // logic that returns true if viewValue passes validation
+        }
+    }])
+
+    app.directive('dateformat',['dateFormatValidation',function(validation) {
+        return {
+            require: "ngModel",
+            link: function(scope, el, attrs, ctrl) {
+                ctrl.$validators.dateformat = function(modelValue, viewValue) {
+                    return validation(viewValue);
+                }
+            }
+        }
+    }]);
+    </code></pre>
+    <p>
+        <b>OBS:</b> <i>ngModel or ng-model?</i> That has to do with how AngularJS handles directive naming. When we write a directive name in camelCase, the same name is to be used in HTML through dash-delimited naming, automatically. So, technically, <i>ngModel</i> and <i>ng-model</i> are correct, but we use the latter in HTML and the former in Javascript. Same goes for every directive written <i>this-way</i> or <i>thisWay</i>. The custom directives we've written until now are unaffected by this rule, since they're written <i>thisway</i> instead.
+    </p>
+    <p>
+        Validating the color code should work the same way. See how we're leveraging dependency injection to neatly separate the code?
+    </p>
+    <p>
+        And if I didn't forget anything, that's all we need to make the edit page work properly. It looks overkill, but if you go back you'll see that there was indeed a lot of work to do, with configuring model update behaviour, validation, error messages... But this isn't over yet! The most exciting aspect of this page is using the same user data we manipulated here for fun and profit, and we're going to look into it next.
+    </p>
+    <p>
+        <a href="#explain3">The cool page</a>
+    </p>
+</div>

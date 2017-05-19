@@ -1,0 +1,33 @@
+.coolStuff {
+    .citation {
+        display: block;
+        padding: 32px;
+        border-radius: 8px;
+
+        & > * {
+            opacity: 1;
+        }
+
+        p {
+            font-size: 3em;
+
+            &::before {
+                content: "\"";
+            }
+
+            &::after {
+                content: "\"";
+            }
+        }
+
+        position: relative;
+        small {
+            display: block;
+            text-align: right;
+        }
+    }
+
+    .event {
+        margin-bottom: 1em;
+    }
+}

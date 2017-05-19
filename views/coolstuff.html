@@ -1,1 +1,17 @@
-<h1>Cool</h1>
+<div class="coolStuff" fav-color="fav-color">
+    <div class="citation" ng-hide="noQuote()">
+        <p>{{user.quote}}</p>
+        <small>--{{user.name}}</small>
+    </div>
+    <p ng-show="noQuote()">Please add an inspirational quote to your profile.</p>
+    <div ng-hide="noDate()">
+        <h2>Some things that happened before you were born:</h2>
+        <div class="event" ng-repeat="entry in events | earlierThan : user.birth">
+            <p>
+                <b>{{entry.date | date:'MMMM d, y'}}</b>
+            </p>
+            <h3>{{entry.event}}</h3>
+            <p>{{entry.desc}}</p>
+        </div>
+    </div><p ng-show="noDate()">Please add your birth date on your profile (or any date if you so desire) to get something cool.</p>
+</div>

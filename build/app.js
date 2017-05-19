@@ -63,11 +63,328 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 3);
+/******/ 	return __webpack_require__(__webpack_require__.s = 14);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
+/***/ (function(module, exports, __webpack_require__) {
+
+__webpack_require__(11);
+__webpack_require__(10);
+
+module.exports = angular.module("ngWorks",["ngRoute"]);
+
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+let app = __webpack_require__(0);
+
+app.directive("escape",['escapeHTMLFilter',function(escapeHTMLFilter) {
+    return {
+        link: {
+            post: function(scope, el, attrs, ctrlr) {
+                el[0].innerHTML = escapeHTMLFilter(el[0].innerHTML);
+            }
+        },
+    }
+}]);
+
+app.filter("escapeHTML",function() {
+    return function(html) { // Taken from this StackOverflow answer: http://stackoverflow.com/a/6234804/5026708
+        return html
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            //.replace(/"/g, "&quot;")
+            //.replace(/'/g, "&#039;")
+            .replace(/&lt;\/code&gt;/g, "</code>");
+        };
+    }
+);
+
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+let app = __webpack_require__(0);
+
+app.directive("favColor",["tooBright",function(tooBright) {
+    return {
+        link: function(scope, el) {
+            el[0].style.backgroundColor = scope.user.color;
+            el[0].getElementsByClassName("citation")[0].style.backgroundColor = function() {
+                if(tooBright(scope.user.color)) return "rgba(0,0,0,0.35)";
+                else return "rgba(255,255,255,0.35)";
+            }();
+            el[0].style.color = function() {
+                if(tooBright(scope.user.color)) return "#000";
+                else return "#fff";
+            }();
+        }
+    }
+}])
+
+app.service("rgbToHSL",function() {
+    function parseColor(color) {
+        // color is a hex value!
+        let work = color.split("#")[1];
+        let r = parseInt(work.substr(0,2),16);
+        let g = parseInt(work.substr(2,2),16);
+        let b = parseInt(work.substr(4,2),16);
+        return [r,g,b];
+    };
+    function delta(color) {
+        let rgbColor = parseColor(color);
+        return (rgbColor
+            .map(function(key) {
+                return key/255;
+            }) // To percentage
+            .sort(function(a, b) {
+                return a - b;
+            }) // From min to max
+            .filter(function(key, index, arr) {
+                //console.log(arr);
+                if(index !== 1) return true;
+            }) // Remove middle value
+            .reduce(function(total, item, _, arr) {
+                return total + item;
+            }) // Sum
+        );
+    };
+    function saturation(color) {
+
+    };
+    function hue(color) {
+
+    };
+    return {
+        parse: parseColor,
+        hue: hue,
+        saturation: saturation,
+        lightness: function(color) {
+            return delta(color)/2 * 240
+        },
+    };
+});
+
+app.factory("tooBright",['rgbToHSL',function(toHSL) {
+    return function(color) {
+        return (toHSL.lightness(color) > 120 ||
+            toHSL.parse(color)[1] > 200 // Colors with lots of green look brighter (yellow, cyan)
+        );
+    }
+}])
+
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+let app = __webpack_require__(0);
+
+app.controller("coolController",
+    ['$scope',
+    '$rootScope',
+    'events',
+    'userCheck',
+    function($scope,$rootScope,events,check) {
+        $scope.noDate = function() {return check.noDate($rootScope.user.birth);}
+        $scope.noQuote = function() {return check.noQuote($rootScope.user.quote);}
+        $scope.events = events;
+    }]
+);
+
+app.service("userCheck",function() {
+    this.noDate = function(birth) {
+        return birth == "Invalid Date";
+    };
+    this.noQuote = function(quote) {
+        return !quote;
+    }
+});
+
+app.filter("earlierThan",function() {
+    return function(events, limit) {
+        return events.filter(function(entry) {
+            return (new Date(entry.date)) < limit;
+        });
+    }
+})
+
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+let app = __webpack_require__(0);
+
+app.factory("events",function() {
+    let json = __webpack_require__(13);
+    return angular.fromJson(json).events;
+});
+
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+let app = __webpack_require__(0);
+
+app.config(["$routeProvider",function($route) {
+    $route
+    .when('/', {
+        templateUrl: "./views/home.html",
+    })
+    .when('/ng', {
+        templateUrl: "./views/angular.html",
+    })
+    .when('/coolstuff', {
+        templateUrl: "./views/coolstuff.html",
+        controller: "coolController",
+    })
+    .when('/explain', {
+        templateUrl: "./views/process.html",
+    })
+    .when('/explain1',{
+        templateUrl: "./views/process_general.html",
+    })
+    .when('/explain2',{
+        templateUrl: "./views/process_user.html",
+    })
+    .when('/explain3',{
+        templateUrl: "./views/process_cool.html",
+    })
+    .when('/explain4',{
+        templateUrl: "./views/process_meta.html",
+    })
+    .when('/edit',{
+        templateUrl: "./views/profile.html",
+        controller: "editController",
+    })
+    .otherwise({
+        template: "<h1>This page does not exist. Honest.</h1>",
+    })
+}]);
+
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+let app = __webpack_require__(0);
+
+app.directive('colorformat',['colorFormatValidation',function(validation) {
+    return {
+        require: "ngModel",
+        link: function(scope, el, attrs, ctrl) {
+            ctrl.$validators.colorformat = function(modelValue, viewValue) {
+                return validation(viewValue);
+            }
+        }
+    }
+}]);
+
+app.factory("colorFormatValidation",function() {
+    return function(viewValue) {
+        return /#(\d|[a-f]|[A-F]){6}/.test(viewValue);
+    }
+});
+
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+let app = __webpack_require__(0);
+
+app.directive('dateformat',['dateFormatValidation',function(validation) {
+    return {
+        require: "ngModel",
+        link: function(scope, el, attrs, ctrl) {
+            ctrl.$validators.dateformat = function(modelValue, viewValue) {
+                return validation(viewValue);
+            }
+        }
+    }
+}]);
+
+app.factory("dateFormatValidation",[function() {
+    return function(viewValue) {
+        let test1 = /\d{4}\-\d{1,2}\-\d{1,2}/.test(viewValue);
+        let test2 = viewValue.split("-").every(function(el, index, arr) {
+            if(index > 0) {
+                if (el > 0 && el < 32) return true;
+                else return false;
+            }
+            else return true;
+        });
+        let test3 = new Date(viewValue) < Date.now();
+        return (test1 && test2 && test3);
+    }
+}]);
+
+
+/***/ }),
+/* 8 */
+/***/ (function(module, exports, __webpack_require__) {
+
+let app = __webpack_require__(0);
+
+app.controller("editController",[
+    '$scope',
+    '$rootScope',
+    function($scope,$rootScope,storage) {
+        $scope.updateStorage = function() {
+            localStorage.setItem('userData',JSON.stringify($rootScope.user));
+        };
+        $scope.incorrectInput = function(field) {
+            return (field.$dirty && field.$invalid);
+        };
+        $scope.updateRule = {
+            updateOn: 'submit',
+        }
+}]);
+
+app.service("manipulateStorage",function() {
+    this.set = function(data) {
+        localStorage.setItem('userData',JSON.stringify(data));
+    }
+});
+
+
+/***/ }),
+/* 9 */
+/***/ (function(module, exports, __webpack_require__) {
+
+let app = __webpack_require__(0);
+
+app.run(['$rootScope','defaultUser',function($rootScope,defaultUser) {
+    if(localStorage.getItem('userData')) {
+        $rootScope.user = JSON.parse(localStorage.getItem('userData'));
+
+        // When inserted to localStorage, the date is converted to string;
+        // this will convert it back as soon as it's put into the root scope!
+        $rootScope.user.birth = new Date($rootScope.user.birth);
+    }
+    else {
+        $rootScope.user = defaultUser;
+    }
+}]);
+
+app.constant("defaultUser",{
+    name: "person",
+    birth: new Date(undefined),
+    quote: "",
+    color: "#FFFFFF",
+});
+
+
+/***/ }),
+/* 10 */
 /***/ (function(module, exports) {
 
 /*
@@ -89,7 +406,7 @@ n&&(l[m.name]=n)}q=l}else q=null;else q=null;q=a=q}q&&(b=t(c,{params:d.extend({}
 
 
 /***/ }),
-/* 1 */
+/* 11 */
 /***/ (function(module, exports) {
 
 /*
@@ -413,64 +730,83 @@ PATTERNS:[{gSize:3,lgSize:3,maxFrac:3,minFrac:0,minInt:1,negPre:"-",negSuf:"",po
 
 
 /***/ }),
-/* 2 */,
-/* 3 */
+/* 12 */,
+/* 13 */
+/***/ (function(module, exports) {
+
+module.exports = {
+	"events": [
+		{
+			"event": "Birth of Jesus Christ",
+			"date": "0006-04-17",
+			"desc": "The birth of Jesus Christ, believed by many to be the Son of God and who, at the very least, went on to deliver many life lessons to the Jewish. The actual birth date is estimated."
+		},
+		{
+			"event": "Roosevelt becomes President of the United States",
+			"date": "1901-09-14",
+			"desc": "After the death of president Willian McKinley in September 6th, vice-president Theodore Roosevelt succeds."
+		},
+		{
+			"event": "Debut of Igor Stravinsky's 'Rite of Spring'",
+			"date": "1913-05-29",
+			"desc": "The premiere of the famous piece was held at the Théâtre des Champs-Élysées. The music was so weird some folks there started fighting each other."
+		},
+		{
+			"event": "Wall Street Crash of 1929",
+			"date": "1929-10-24",
+			"desc": "Also known as the 'Black Tuesday', this was a stock market crash with particularly devastating long term effects, including the Great Depression."
+		},
+		{
+			"event": "Launch of the Sputnik-1",
+			"date": "1957-10-04",
+			"desc": "The soviets deployed the first ever artificial satellite to orbit the Earth. This sparked the Space Race between the US and the USSR."
+		},
+		{
+			"event": "Release of 'Star Wars'",
+			"date": "1977-05-25",
+			"desc": "This day marked the debut of the first 'Star Wars' movie, that went on to spawn a prolific franchise still running as of this document."
+		},
+		{
+			"event": "The fall of the Berlin Wall",
+			"date": "1989-11-09",
+			"desc": "Among much confusion between German officials and conflicting orders, the wall was finally open on that day, and its demolition started."
+		},
+		{
+			"event": "Javascript is standardized",
+			"date": "1997-06-01",
+			"desc": "In the ECMA General Assembly of June 1997 (the exact date is uncertain, it's not disclosed for some reason), the first document of ECMA-262, which is to this day the official standard for Javascript, was adopted."
+		},
+		{
+			"event": "Donald Trump assumes office as President of the United States",
+			"date": "2017-01-20",
+			"desc": "But you're too young to read this or know who is Donald Trump. Either that or people are still reading this website after a couple years, which is pretty exciting. I wonder if Angular will be relevant five years from now."
+		}
+	]
+};
+
+/***/ }),
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(1);
+// Start app
 __webpack_require__(0);
 
-module.exports = angular.module("ngWorks",["ngRoute"]);
+// Routing
+__webpack_require__(5);
 
-// Execute other scripts
-
+// User
 __webpack_require__(8);
+__webpack_require__(7);
+__webpack_require__(6);
 __webpack_require__(9);
 
+// Cool page
+__webpack_require__(3);
+__webpack_require__(2);
+__webpack_require__(4);
 
-/***/ }),
-/* 4 */,
-/* 5 */,
-/* 6 */,
-/* 7 */,
-/* 8 */
-/***/ (function(module, exports, __webpack_require__) {
-
-let app = __webpack_require__(3);
-
-app.config(["$routeProvider",function($route) {
-    $route
-    .when('/', {
-        templateUrl: "./views/home.html",
-    })
-    .when('/ng', {
-        templateUrl: "./views/angular.html",
-    })
-    .when('/interactive', {
-        templateUrl: "./views/coolstuff.html",
-    })
-    .when('/explain', {
-        templateUrl: "./views/process.html",
-    })
-    .when('/edit',{
-        templateUrl: "./views/profile.html",
-        controller: "editController",
-    })
-    .otherwise({
-        template: "erro?",
-    })
-}]);
-
-
-/***/ }),
-/* 9 */
-/***/ (function(module, exports, __webpack_require__) {
-
-let app = __webpack_require__(3);
-
-app.controller("editController",['$scope',function($scope) {
-    console.log("editing...");
-}]);
+// Process explain
+__webpack_require__(1);
 
 
 /***/ })

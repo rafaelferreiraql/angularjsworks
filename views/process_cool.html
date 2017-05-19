@@ -1,0 +1,182 @@
+<div>
+    <h1>The "Do Something Cool" page</h1>
+    <p>
+        If you missed it, go check out the previous explanations on the <a href="#explain1">global configuration</a> and the <a href="#explain2">edit page</a>.
+    </p>
+    <h2>Review</h2>
+    <p>
+        This page does something different with each of the user data provided:
+    </p>
+    <ul>
+        <li>The quote chosen is displayed in a "box" at the beginning, with added quote marks;</li>
+        <li>The user name is also displayed in the box;</li>
+        <li>There's a list of events which date before the birth date provided by the user;</li>
+        <li>Finally, the body color reflects the "favorite color" chosen.</li>
+    </ul>
+    <h2>The how</h2>
+    <p>
+        Let's start with the simplest feature, the quote box.
+    </p>
+    <pre>
+<code>
+    &lt;div class=&quot;citation&quot; ng-hide=&quot;noQuote()&quot;&gt;
+        &lt;p&gt;{{user.quote}}&lt;/p&gt;
+        &lt;small&gt;--{{user.name}}&lt;/small&gt;
+    &lt;/div&gt;
+    &lt;p ng-show=&quot;noQuote()&quot;&gt;Please add an inspirational quote to your profile.&lt;/p&gt;
+        </code></pre>
+    <p>
+        At this point, you should already understand what is going on. There's a template for <code>$rootScope.user.quote</code> and another for <code>$rootScope.user.name</code>, and the box is hidden if the user didn't write any quote, via <code>ng-hide</code> (which, you guessed it, is the opposite of <code>ng-show</code>) and a <code>noQuote()</code> function that will be part of the scope. A message will display otherwise, via <code>ng-show</code>. Please note that the quotation marks appear around the quote via CSS (<code>::before</code> and <code>::after</code>).
+    </p>
+    <p>
+        The background color of the quote box will depend on the background color of the section itself; the block will be brighter if the background is dark, and darker if the background is bright. Since it has to know what background color the section gets, it must be defined after it. So read on...
+    </p>
+    <pre>
+        <code>
+    &lt;div class=&quot;coolStuff&quot; fav-color=&quot;fav-color&quot;&gt;
+        </code></pre>
+    <p>
+        Now, let's understand the color change. Since it's dynamically related to the color you pick, we can't use a CSS file for that. Instead, we set the background color inside Angular itself. The <code>fav-color</code> directive (set to the <code>fav-color</code> value just to avoid AJAX errors on malformed XML, you could just omit the value assignment if you wanted) is responsible for the color management, so we will define that directive in Angular, just like we've done for the validation on the editing page, and through that we change the color. Let's look at the directive definition I used before...
+    </p>
+    <pre>
+        <code>
+    app.directive('myDirective',['...dependencies',function(...deps) {
+        return {
+            require: "siblingDirective", // Not needed this time!
+            link: function(scope, el, attrs, ctrl) {
+                ...
+            }
+        }
+    }])
+        </code></pre>
+    <p>
+        Last time we only had eyes for the <code>ctrl</code> argument, but now we will want to understand <code>scope</code> and <code>el</code>. <code>scope</code> refers to the scope the directive is in or even a scope created just for that directive (through another directive option we won't be looking at), and <code>el</code> is the element that directive is inserted in. A-ha! We can use this to change the element style! Also, by using the scope, we can also use the color inherited from the root scope. Finally, knowing the background color of it, we can now color the quote box too.
+    </p>
+    <p>
+        Again, I won't explain all logic, but it's worth to mention how exactly I did the setup.
+    </p>
+    <pre>
+        <code>
+    app.service("rgbToHSL",function() {
+        ...
+        return { // All four are functions; two are used on the factory below
+            parse: ..., // Converts hex color to a RGB array
+            hue: ..., // Not used.
+            saturation: ..., // Same as above
+            lightness: ..., // Gets the lightness value from 0 to 240.
+        };
+    });
+
+    app.factory("tooBright",['rgbToHSL',function(toHSL) {
+        return function(color) {
+            return (toHSL.lightness(color) > 120 ||
+                toHSL.parse(color)[1] > 200 // Colors with lots of green look brighter (yellow, cyan)
+            );
+        }
+    }])
+        </code></pre>
+    <p>
+        We won't just need to know what is the background color, but also if it's more on the dark or bright side, for both the quote box color and the text color. So, we will need the <code>tooBright</code> factory on our <i>favColor</i> directive.
+    </p>
+    <pre>
+        <code>
+            app.directive("favColor",["tooBright",function(tooBright) {
+                return {
+                    link: function(scope, el) {
+                        // Our element would be el[0],
+                        // The quote box is el[0].getElementsByClassName("citation")[0]
+                        // All we have to do now is to change the styles accordingly,
+                        // Using tooBright(scope.user.color) to decide on bright or dark.
+                    }
+                }
+            }])
+        </code></pre>
+    <p>
+        And all should work now. If you want to read the full code, take a look at the <a href="https://github.com/rafaelferreiraql/angularjsworks">repository</a>.
+    </p>
+    <pre>
+        <code>
+            &lt;div ng-hide=&quot;noDate()&quot;&gt;
+                &lt;h2&gt;Some things that happened before you were born:&lt;/h2&gt;
+                &lt;div class=&quot;event&quot; ng-repeat=&quot;entry in events | earlierThan : user.birth&quot;&gt;
+                    &lt;p&gt;
+                        &lt;b&gt;{{entry.date | date:'MMMM d, y'}}&lt;/b&gt;
+                    &lt;/p&gt;
+                    &lt;h3&gt;{{entry.event}}&lt;/h3&gt;
+                    &lt;p&gt;{{entry.desc}}&lt;/p&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;&lt;p ng-show=&quot;noDate()&quot;&gt;Please add your birth date on your profile (or any date if you so desire) to get something cool.&lt;/p&gt;
+        </code></pre>
+    <p>
+        We're finally at the end of this journey! First, let's get it out of the way: at this point, you might've already noticed the <code>ng-hide</code> and <code>ng-show</code> directives, acting just like they did in the quote box. If you still don't understand it, read the <a href="#explain2">previous part</a> again where I talk about <code>ng-show</code> and how it works.
+    </p>
+    <p>
+        What we want now is to display a list of events with date, title and description. These events come from a JSON file that we're fetching to Angular, and will be included in our scope. But we don't want <i>all</i> events to be displayed, but only those who happened before the user's provided birth date.
+    </p>
+    <p>
+        To make a div for each displayed event, we use the <code>ng-repeat</code>. It is a directive that repeats that element (including its children) for every element in an array or object. So, the basic syntax is something like <code>ng-repeat="element in collection"</code>, where <code>collection</code> is an array or object on the current scope. It creates a scope for each repeated instance, containing <code>element</code>. In our case, each repeated instance will have <code>entry</code> available on their scope, each entry being an event on the <code>events</code> array in our scope, which values are taken directly from a JSON file. <code>entry</code> has three properties: <code>event</code> (the title), <code>date</code> and <code>desc</code> (description), and you can see that all three are used on our markup.
+    </p>
+    <p>
+        To make sure that we'll work with only the events we want to see, that is, the ones whose date is previous to the birth date provided, we use a <b>filter</b>, another AngularJS feature. Filters are literally functions that take something, do some work on it, and return a result. Looking back at our code, we have <code>ng-repeat:"entry in events | earlierThan : user.birth"</code>. The <code>|</code> signals that we will use the <code>earlierThan</code> filter (a custom filter we'll define later on Javascript), with the argument <code>user.birth</code>. In English, we would read that as <i>repeat this element for each element (we'll call <code>entry</code>) in an array of events that happened before our user's birth</i>.
+    </p>
+    <p>
+        Another filter is used down the road: <code>&lt;b&gt;{{entry.date | date:'MMMM d, y'}}&lt;/b&gt;</code> uses the <code>date</code> filter, which is provided by Angular. Instead of filtering an array, this filter instead formats our input, that is, <code>entry.date</code>, to a format I chose, that would be more human-readable. The argument is <code>"MMMM d, y"</code>, which is a date-specific syntax this filter uses (you can read more about it <a href="https://docs.angularjs.org/api/ng/filter/date">here</a>).
+    </p>
+    <p>
+        Let's go to Javascript so we can define our <code>earlierThan</code> filter.
+    </p>
+    <pre><code>
+    app.filter("earlierThan",function() {
+        return function(events, limit) {
+            return events.filter(function(entry) {
+                return (new Date(entry.date)) < limit;
+            });
+        }
+    })
+        </code></pre>
+    <p>
+        And that's really it. It seems like <code>return</code> hell, but it's much simpler than it looks. The first <code>return</code> is the filter function applied. So, in our case, our function will use the <code>events</code> array and take the <code>limit</code> argument, then return the filtered array (do not mistake the AngularJS filters with the <code>.filter()</code> method from Javascript that's also uson ed here!). The filter is now registered on our module, so we don't even need to inject it in the controller to make it work, unless we wanted to use it directly on Javascript instead of doing it in the markup (this is too possible).
+    </p>
+    <p>
+        Finally, let's take a look at the <code>events</code> array itself:
+    </p>
+    <pre>
+        <code>
+    // events.json
+
+    {
+        "events": [
+            {
+                "event": "Birth of Jesus Christ",
+                "date": "0006-04-17",
+                "desc": "The birth of Jesus Christ, believed by many to be the Son of God and who, at the very least, went on to deliver many life lessons to the Jewish. The actual birth date is estimated."
+            },
+            {
+                "event": "Roosevelt becomes President of the United States",
+                "date": "1901-09-14",
+                "desc": "After the death of president Willian McKinley in September 6th, vice-president Theodore Roosevelt succeds."
+            },
+            {
+                "event": "Debut of Igor Stravinsky's 'Rite of Spring'",
+                "date": "1913-05-29",
+                "desc": "The premiere of the famous piece was held at the Théâtre des Champs-Élysées. The music was so weird some folks there started fighting each other."
+            },
+
+            ...
+        ]
+    }
+
+    // back to Angular
+
+    app.factory("events",function() {
+        let json = require("./events.json");
+        return angular.fromJson(json).events;
+    });
+        </code></pre>
+    <p>
+        Surprise, our <code>events</code> array is also a factory. We'll inject it into the controller to assign it to <code>$scope.events</code>. Once again, we <i>could</i> do this directly on the controller itself, but it's better to separate source from the scope.
+    </p>
+    <p>
+        And <b>we're finished!</b> Once again, if you want to dive deeper, or look at other aspects of the page, like styling, check the source code. This page uses Webpack, so it won't look like your typical <code>&lt;script src="..."&gt;</code> filled HTML, but it should be intuitive enough even if you have no idea how to use Webpack (<a href="https://rafaelferreiraql.github.io/webpackworks/">I do have a page on this too</a>).
+    </p>
+</div>

@@ -1,0 +1,138 @@
+<div>
+    <h1>Page configuration</h1>
+    <h2>Review</h2>
+    <p>
+        Here, we'll deal with global properties and configuration, but first, we must review what exactly this page does differently from regular HTML.
+    </p>
+    <h3>Features</h3>
+    <p>
+        Firstly, this is a Single Page Application, which means it won't reload every time we enter another page. It will instead load sections via AJAX. Furthermore, the header and the navigation bar are unaffected by following different sections.
+    </p>
+    <p>
+        The main feature this page has would be the user data, that is persistent throughout the whole page. The panel on the header, the <a href="#edit">user edit page</a> and the <a href="#coolstuff">cool page</a> all share this same data. This data should remain even after you exit the page.
+    </p>
+    <h2>The how</h2>
+    <h3>Creating and starting the app</h3>
+    <p>
+        To start, after including the AngularJS script (via <code>&lt;script src="..." /&gt;</code>, for example, although here it was done through Webpack), you have to create a <b>module</b> to be your app. You do this via Javascript:
+    </p>
+    <pre><code>
+    angular.module("moduleName",[/*list of modules to depend on, if any...*/]);
+    </code></pre>
+    <p>
+        You have to actually tell Angular where in the DOM you want your Angular application. Turns out Angular extends HTML capabilities, so if you add an attribute to this DOM element called <code>ng-app</code> with the value being the module name, you're set. In this case, we have <code>ng-app="ngWorks"</code> on the <code>&lt;body&gt;</code> tag. After doing so, Angular will then automatically initialize the <code>ngWorks</code> module when it sees there's <code>&lt;body ng-app="ngWorks"&gt;</code>, and will refer directly to <code>&lt;body&gt;</code> when operating.
+    </p>
+    <h3>Routing</h3>
+    <p>
+        To create a Single Page Application, Angular uses routing. It is more than anything a wrapper for loading HTML partials via AJAX and having each appear onto view when needed during navigation, and we will use this to insert those partials on the main part of the page (here I'm using a <code>&lt;main&gt;</code> element).
+    </p>
+    <p>
+        To achieve this, we will have to actually download the router (available <a href="https://cdnjs.com/libraries/angular.js/">here</a> as <i>angular-route</i>), since it isn't bundled with AngularJS, and include the script after Angular (since, obviously, the router uses Angular). angular-router's name in code is <code>ngRoute</code>, and it will be added on the module definition:
+    </p>
+    <pre><code>
+    let app = angular.module("ngWorks",['ngRoute']);
+
+    // We're assigning it to a variable so we can refer to it when operating on this module
+    // (we will do that throughout the entire code)
+    </code></pre>
+    <p>
+        Because that's how we add dependencies on Angular, via what we call <b>dependency injection</b>. We'll look more into it later but, basically, when something in your Angular application uses another, you'll want to feed this another's name as a string to the something's definition. In this case, the <i>ngWorks</i> module will use something from the <i>ngRoute</i> module, so we write <code>'ngRoute'</code> as an element in the module dependency array.
+    </p>
+    <p>
+        And we're using it now. Angular has a lifecycle of events before the application is ready to use, and routing is defined during the <b>configuration phase</b>. So, we're heading straight for the configuration and describing some route-related things for it to do during config.
+    </p>
+    <pre><code>
+    app.config(['$routeProvider',function($route) {
+        $route
+            .when('/relative_link',{
+                templateUrl: "path/to/html_file.html",
+                controller: "ctrl_for_this_route"
+            })
+            .otherwise({
+                template: "&lt;h1&gt;Page not found&lt;/h1&gt;"
+            });
+    }])
+    </code></pre>
+    <p>
+        Ok, let's see what's going on.
+    </p>
+    <ul>
+        <li>First, we call the config phase, that receives an array as argument. That array would be the list of dependencies and the callback function describing what you want to do at the config phase.</li>
+        <li>Then, we add the dependencies accordingly. In our case, we have <code>$routeProvider</code>, that comes with (and is the whole basis of) <i>angular-route</i>, which you added to our app in the previous step.</li>
+        <li>The function itself will accept as arguments the dependencies provided before it. In this case, our only dependency is <code>$routeProvider</code>, which we call as <code>$route</code> because, always remember, we can call our variables whatever we want!</li>
+        <li><code>$routeProvider</code>'s main method is <code>.when()</code>, which determines what we will do (second argument, an object) with a provided relative route (first argument, a string). The method is chainable, so, in a real-life case with many routes, we will chain <code>.when()</code>s.</li>
+        <li>There are many options possible for routes, but the ones used on the site are only two: <code>templateUrl</code> and <code>controller</code>. Controllers will be fleshed out later, while the <code>templateUrl</code> thing is a relative path.</li>
+        <li>I lied, there's a third option used. You see, aside from <code>.then()</code>, there's the <code>.otherwise()</code> method, which determines what happens when you follow a path that has no route (no <code>.then()</code>) associated with it. There, I use the <code>template</code> option, which, instead of being a path to a HTML file, will be the very HTML being used, in string form.</li>
+    </ul>
+    <p>
+        A couple things to watch out for before we continue: There's an alternative syntax to the <code>['dependency1','dependency2',...,function(dep1,dep2,...) {}]</code> form we see. We describe dependencies directly as the function arguments, meaning we won't be able to call them whatever we want as previously, but it still lets us write quite a bit less: <code>function(dependency1, dependency2, ...) {}</code>
+    </p>
+    <p>
+        There's one caveat to this method, and that is, while AngularJS is smart enough to deal with this, minification engines are not. So, if you plan to minify your app, the second format is a no-no.
+    </p>
+    <p>
+        Finally, you have to mark whatever element you want your external HTML to load in with the <code>ng-view</code> attribute. Routing looks for this element to load into, so there may only be one <code>ng-view</code> in your page. If you do desire more flexibility on routing, there's an alternative to angular-route called <a href="https://ui-router.github.io/">UI Router</a>.
+    </p>
+    <p>
+        Aaaaand then we're set. Now, we just have to use links in our page for navigation; since AngularJS is "faking" linking with hash manipulation and view loading, every link will use hashes. So, if your route goes to the <code>/somewhere</code> path, your links must have <code>href="#somewhere"</code>.
+    </p>
+    <h3>The data</h3>
+    <p>
+        There's only one thing left. As you've seen before, all pages share the same data, which is the user data provided by the user. That data consists of four parts:
+    </p>
+    <ul>
+        <li>The user name;</li>
+        <li>A birth date, which is converted to a Date object as soon as possible;</li>
+        <li>A color code (in hex);</li>
+        <li>A quote, which is just a string.</li>
+    </ul>
+    <p>
+        That data is shared through the application by the means of <code>$rootScope</code>. A scope is a view model that represents some data and connects with the HTML layer, making it possible for the user to interact with such data, or at least for this data to be displayed. An AngularJS application may have an indefinite amount of scopes, depending on the application, but there is a global scope, the <i>root scope</i>, which we're using since this data is shared throughout the whole application.
+    </p>
+    <p>
+        When you first enter the page, there's a placeholder set of data ready. This data is stored in an Angular constant, like this:
+    </p>
+    <pre><code>
+    app.constant("defaultUser",{
+        name: "person",
+        birth: new Date(undefined),
+        quote: "",
+        color: "#FFFFFF",
+    });
+    </code></pre>
+    <p>
+        That is set to the root scope in the run phase of our app. It's done in the same fashion as the config phase, meaning we call <code>app.run(['dependencies',function(deps){}])</code> and insert our code. In this case, we're using two dependencies: The root scope itself (<code>$rootScope</code>) and the constant we've just defined.
+    </p>
+    <pre><code>
+    app.run(['$rootScope','defaultUser',function($rootScope,defaultUser) {
+        $rootScope.user = defaultUser;
+    }]);
+    </code></pre>
+    <p>
+        Now, we could just put that constant definition anywhere in our code, like as a global variable or inside the run method, as we would maybe do in plain Javascript? Yes, nothing stops us. However, it makes more sense in the AngularJS workflow to do it like this. Our constant is now a dependency like any other, and we can use it like so. That's the way AngularJS is supposed to work, after all, with AngularJS things depending on each other.
+    </p>
+    <p>
+        Now, if we look at the <a href="https://github.com/rafaelferreiraql/angularjsworks">source code on Github</a> and find the file where our data is created (it's <i>script/user/user_data.js</i>), we'll see the run function is not as simple. One neat property of this page is that the data you insert is persistent even after you leave the page. It's <a href="https://developer.mozilla.org/en-US/docs/Web/API/Storage/LocalStorage">Local Storage</a> in action! Now, I won't explain it here, since this is all about AngularJS, but briefly speaking, localStorage is an object that interacts with data stored on the user's browser, so, every time you update the data on this page, it's stored on your computer, and brought back when you return. It's a cheap alternative to server-side data storing, since server-side scripting isn't a thing in Github Pages.
+    </p>
+    <p>
+        Finally, how is this data displayed throughout the page? Let's start with the little panel you see in the header. It displays "Hello, (your name)!", and will change whenever you change your user name. How does it do that? Javascript? No, it's HTML.
+    </p>
+    <p>
+        Remember that AngularJS extends HTML functionality? The framework actually lets you use templates in your markup as long as it's inside a <code>ng-app</code>, so we do it like this:
+    </p>
+    <pre><code ng-non-bindable="ng-non-bindable">
+    &lt;p&gt;
+        Hello, {{user.name}}!
+    &lt;/p&gt;
+    </code></pre>
+    <p>
+        If you were paying attention, you know that <code>user</code> is a property we included in <code>$rootScope</code>, so we can use that directly inside these curly braces. AngularJS templates allow us to write expressions more akin to Javascript, inside our HTML. Of course we shouldn't overdo it, since separation of concerns is still a thing in AngularJS applications, but as long as what we're doing in HTML is descriptive enough, it's all fair.
+    </p>
+    <p>
+        Now that everything page-wide is set, we can then delve into the specific interactive pages. We won't be looking at the <a href="#/">Home</a> and the <a href="#ng">AngularJS description</a> pages, since there's nothing really exciting about them. Instead, follow:
+    </p>
+    <p>
+        <a href="#/explain2">The edit page</a><br/>
+        <a href="#/explain3">The cool page</a>
+    </p>
+</div>
