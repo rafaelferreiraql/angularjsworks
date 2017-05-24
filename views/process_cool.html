@@ -18,7 +18,7 @@
         Let's start with the simplest feature, the quote box.
     </p>
     <pre>
-<code>
+<code ng-non-bindable="ng-non-bindable">
     &lt;div class=&quot;citation&quot; ng-hide=&quot;noQuote()&quot;&gt;
         &lt;p&gt;{{user.quote}}&lt;/p&gt;
         &lt;small&gt;--{{user.name}}&lt;/small&gt;
@@ -95,7 +95,7 @@
         And all should work now. If you want to read the full code, take a look at the <a href="https://github.com/rafaelferreiraql/angularjsworks">repository</a>.
     </p>
     <pre>
-        <code>
+        <code ng-non-bindable="ng-non-bindable">
             &lt;div ng-hide=&quot;noDate()&quot;&gt;
                 &lt;h2&gt;Some things that happened before you were born:&lt;/h2&gt;
                 &lt;div class=&quot;event&quot; ng-repeat=&quot;entry in events | earlierThan : user.birth&quot;&gt;

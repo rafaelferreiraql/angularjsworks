@@ -24,9 +24,6 @@ app.config(["$routeProvider",function($route) {
     .when('/explain3',{
         templateUrl: "./views/process_cool.html",
     })
-    .when('/explain4',{
-        templateUrl: "./views/process_meta.html",
-    })
     .when('/edit',{
         templateUrl: "./views/profile.html",
         controller: "editController",
