@@ -1,7 +1,9 @@
 const path = require('path');
 const Extract = require('extract-text-webpack-plugin');
+const UglifyJS = require('uglifyjs-webpack-plugin');
 
 const cssExtract = new Extract("styles.css");
+const uglify = new UglifyJS();
 
 module.exports = {
     entry: {
@@ -21,7 +23,17 @@ module.exports = {
                     use: ['css-loader','postcss-loader','less-loader'],
                 })
             },
+            {
+                test: /\.js$/,
+                exclude: /node_modules/,
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                        presets: ['es2015']
+                    }
+                }
+            },
         ]
     },
-    plugins: [ cssExtract ]
+    plugins: [ cssExtract, uglify ]
 }
